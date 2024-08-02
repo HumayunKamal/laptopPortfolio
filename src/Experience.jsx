@@ -13,7 +13,11 @@ import { useThree } from "@react-three/fiber";
 import { useState } from "react";
 import * as THREE from "three";
 import buttonPress from "/buttonPress.mp3";
-import { PORTFOLIO_LINK, PORTFOLIO_DESC, USER_NAME } from "./constant.local.js";
+
+// .env
+const PORTFOLIO_LINK = import.meta.env.VITE_PORTFOLIO_LINK;
+const PORTFOLIO_DESC = import.meta.env.VITE_PORTFOLIO_DESC;
+const USER_NAME = import.meta.env.VITE_USER_NAME;
 
 export default function Experience() {
   const buttonAudio = new Audio(buttonPress);
