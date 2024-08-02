@@ -5,15 +5,69 @@ import {
   Html,
   PresentationControls,
   Text,
+  useAnimations,
+  useCursor,
   useGLTF,
 } from "@react-three/drei";
-
-// .env
-const PORTFOLIO_LINK = import.meta.env.VITE_PORTFOLIO_LINK;
-const PORTFOLIO_DESC = import.meta.env.VITE_PORTFOLIO_DESC;
+import { useThree } from "@react-three/fiber";
+import { useState } from "react";
+import * as THREE from "three";
+import buttonPress from "/buttonPress.mp3";
+import { PORTFOLIO_LINK, PORTFOLIO_DESC, USER_NAME } from "./constant.local.js";
 
 export default function Experience() {
-  const laptop = useGLTF("/macbook.gltf");
+  const buttonAudio = new Audio(buttonPress);
+  const laptop = useGLTF("/laptop.glb");
+  const { actions, ref, mixer } = useAnimations(laptop.animations);
+
+  // For making responsive
+  const { size } = useThree();
+  const isMobile = size.width <= 640;
+  // State to track if the animation is playing
+  const [isLaptopOpen, setIsLaptopOpen] = useState(false);
+
+  const [isLaptopHovered, setIsLaptopHovered] = useState(false);
+
+  // Set Cursor
+  useCursor(isLaptopHovered, "pointer", "grab", document.body);
+
+  const clickHandler = (e) => {
+    if (!isLaptopOpen) {
+      buttonAudio.play();
+      actions.openLaptop.play();
+      actions.openLaptop.loop = THREE.LoopOnce; // Play animation once
+      actions.openLaptop.clampWhenFinished = true; // Stops at the last frame
+
+      // Add event listener for the finished event
+      mixer.addEventListener("finished", (event) => {
+        if (event.action === actions.openLaptop) {
+          setIsLaptopOpen(true);
+        }
+      });
+    }
+
+    /////////////////////////////////////////////////
+    // This code is for closing the model but
+    // it does not work properly so I turned it off.
+    // else {
+    //   buttonAudio.play();
+    //   setIsLaptopOpen(false);
+
+    //   // Ensure the closeLaptop action is stopped before playing it again
+    //   // actions.closeLaptop.stop();
+    //   // actions.closeLaptop.play();
+    //   // actions.closeLaptop.loop = THREE.LoopOnce; // Play animation once
+    //   // actions.closeLaptop.clampWhenFinished = true; // Stops at the last frame
+
+    //   // Add event listener for the finished event
+    //   mixer.addEventListener("finished", (event) => {
+    //     if (event.action === actions.closeLaptop) {
+    //       console.log("Laptop close animation finished.");
+    //       // Perform any additional actions needed when animation finishes
+    //     }
+    //   });
+    // }
+  };
 
   return (
     <>
@@ -22,7 +76,9 @@ export default function Experience() {
 
       <color args={["#1d1836"]} attach="background" />
 
+      {/* It is like Environmental control */}
       <PresentationControls
+        cursor={false}
         global
         rotation={[0.13, 0.1, 0]}
         polar={[-0.4, 0.2]}
@@ -44,27 +100,43 @@ export default function Experience() {
           {/* Axes Helper */}
           {/* <axesHelper args={[1]} position={-1.5} /> */}
 
-          {/* Laptop */}
-          <primitive object={laptop.scene} position-y={-1.2}>
-            <Html
-              transform
-              wrapperClass="htmlScreen"
-              distanceFactor={1.17}
-              position={[0, 1.56, -1.4]}
-              rotation-x={-0.256}
-            >
-              <iframe src={PORTFOLIO_LINK} title={PORTFOLIO_DESC}></iframe>
-            </Html>
+          {/* Laptop Model*/}
+          <primitive
+            object={laptop.scene}
+            position-y={-1.2}
+            ref={ref}
+            onClick={clickHandler}
+            onPointerOver={() => setIsLaptopHovered(true)}
+            scale={isMobile ? 0.65 : 1}
+            onPointerOut={() => setIsLaptopHovered(false)}
+          >
+            {isLaptopOpen && (
+              <Html
+                transform
+                wrapperClass="htmlScreen"
+                distanceFactor={1.17}
+                position={[0, 1.56, -1.4]}
+                rotation-x={-0.256}
+              >
+                <iframe src={PORTFOLIO_LINK} title={PORTFOLIO_DESC}></iframe>
+              </Html>
+            )}
           </primitive>
+
+          {/* Text  */}
           <Text
             font="./bangers-v20-latin-regular.woff"
-            fontSize={1}
-            position={[2, 0.75, 0.75]}
+            fontSize={isMobile ? 0.4 : 1}
+            position={[
+              isMobile ? 1.5 : 2,
+              isMobile ? 0.4 : 0.75,
+              isMobile ? -0.3 : 0.75,
+            ]}
             rotation-y={-1.25}
             maxWidth={2}
             textAlign="center"
           >
-            Humayun Kamal
+            {USER_NAME ?? ""}
           </Text>
         </Float>
       </PresentationControls>
@@ -75,4 +147,4 @@ export default function Experience() {
   );
 }
 
-useGLTF.preload("./macbook.gltf");
+useGLTF.preload("./laptop.glb");

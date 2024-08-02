@@ -1,0 +1,5 @@
+const PORTFOLIO_LINK = "";
+const PORTFOLIO_DESC = "";
+const USER_NAME = "";
+
+export { PORTFOLIO_LINK, PORTFOLIO_DESC, USER_NAME };
